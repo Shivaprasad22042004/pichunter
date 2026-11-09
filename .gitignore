@@ -20,3 +20,6 @@ models/*.onnx
 
 # build artefacts
 docker_build.log
+
+# local test scratch
+_ui_test.json
