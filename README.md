@@ -133,6 +133,33 @@ thumbnails). Set it to serve 420px previews.
 - The index holds face vectors of people who appear in photos that the
   graduation organiser already published.
 
+### Usage counting
+
+A tiny counter records **one line per search**: a timestamp, a daily-salted
+hash of the caller's IP, and whether any matches were found.
+
+- **No IP is stored** — only a SHA-256 hash of `secret + day + ip`.
+- **The salt rotates daily**, so the same person on two days produces
+  unrelated hashes and cannot be linked across days.
+- **No cookies, no localStorage, no user agent, no referrer.**
+- **No match counts** by default (set `STATS_STORE_MATCH_COUNT=1` to include
+  them for debugging).
+
+View the numbers at **`/stats.html`** (enter `STATS_TOKEN`).
+
+| Endpoint | |
+|---|---|
+| `GET /api/stats?key=<STATS_TOKEN>` | JSON summary; 404 without the right key |
+
+Set **`EXCLUDE_IPS`** to a comma-separated list of IPs that are never counted,
+so your own testing does not inflate the numbers.
+
+**Limitation on the free tier:** the file lives on ephemeral disk, so counters
+reset on redeploy or restart. `stats.export()` returns recoverable rows, and
+`STATS_SEED` (a JSON array) restores them on boot if you want to keep
+long-term totals.
+
+
 ---
 
 ## Licence

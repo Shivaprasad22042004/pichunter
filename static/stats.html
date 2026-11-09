@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usage — Graduation Photo Finder</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#131821;--line:#232b38;--text:#e6edf3;--muted:#8b98a9;
+        --accent:#4f9cf9;--ok:#3fb950;--warn:#d29922}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:36px 18px 80px}
+  h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 26px;font-size:13.5px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+        padding:22px;margin-bottom:16px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .tile{background:#0f141c;border:1px solid var(--line);border-radius:11px;padding:16px}
+  .tile .k{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
+  .tile .v{font-size:30px;font-weight:700;margin-top:6px;letter-spacing:-.02em}
+  .tile .u{font-size:12px;color:var(--muted);margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}
+  th{text-align:left;color:var(--muted);font-weight:600;font-size:11.5px;
+     text-transform:uppercase;letter-spacing:.06em;padding:8px 10px;
+     border-bottom:1px solid var(--line)}
+  td{padding:9px 10px;border-bottom:1px solid #1a212c}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .bar{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:7px}
+  .bar>i{display:block;height:100%;background:var(--accent)}
+  input{background:#0f141c;border:1px solid var(--line);color:var(--text);
+        border-radius:9px;padding:10px 13px;font-size:14px;width:100%;max-width:340px}
+  button{background:var(--accent);color:#fff;border:0;border-radius:9px;
+         padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .err{color:#f85149;font-size:13.5px}
+  .note{font-size:12.5px;color:var(--muted);border-left:3px solid var(--line);
+        padding-left:12px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Usage</h1>
+  <p class="sub">How many people searched, and how many found themselves.</p>
+
+  <div class="card" id="auth">
+    <div class="row">
+      <input id="key" type="password" placeholder="stats key" autocomplete="off">
+      <button id="go">Open</button>
+    </div>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div id="out"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const saved = sessionStorage.getItem('statsKey');
+if (saved) { $('#key').value = saved; load(); }
+
+$('#go').addEventListener('click', load);
+$('#key').addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
+
+async function load() {
+  const key = $('#key').value.trim();
+  const err = $('#err');
+  err.textContent = '';
+  if (!key) { err.textContent = 'Enter the stats key.'; return; }
+  try {
+    const res = await fetch('/api/stats?key=' + encodeURIComponent(key));
+    if (!res.ok) throw new Error(res.status === 404 ? 'Wrong key (or stats disabled).' : 'Error ' + res.status);
+    const d = await res.json();
+    sessionStorage.setItem('statsKey', key);
+    $('#auth').style.display = 'none';
+    render(d);
+  } catch (e) {
+    err.textContent = e.message;
+  }
+}
+
+function render(d) {
+  const days = d.days || [];
+  const today = days[days.length - 1] || null;
+  const maxDay = Math.max(1, ...days.map(x => x.searches));
+  const peopleAll = days.reduce((a, x) => a + x.people, 0);
+  const peopleMatched = days.reduce((a, x) => a + x.people_who_matched, 0);
+  const rate = peopleAll ? Math.round(peopleMatched / peopleAll * 100) : 0;
+
+  const tile = (k, v, u) => `<div class="tile"><div class="k">${k}</div>
+      <div class="v">${v}</div>${u ? `<div class="u">${u}</div>` : ''}</div>`;
+
+  $('#out').innerHTML = `
+    <div class="card">
+      <div class="tiles">
+        ${tile('Today', today ? today.people : 0, 'people')}
+        ${tile('Total searches', d.total_searches, 'all time')}
+        ${tile('People who matched', `${rate}%`, peopleMatched + ' of ' + peopleAll + ' visitor-days')}
+        ${tile('Days tracked', days.length, days.length ? days[0].date + ' → ' + days[days.length-1].date : '')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="k" style="color:var(--muted);font-size:11.5px;text-transform:uppercase;
+           letter-spacing:.06em;margin-bottom:4px">Per day</div>
+      ${days.length ? `<table>
+        <thead><tr>
+          <th>Date</th><th class="num">People</th><th class="num">Searches</th>
+          <th class="num">Found</th><th></th>
+        </tr></thead>
+        <tbody>
+        ${days.slice().reverse().map(x => `<tr>
+          <td>${x.date}${x.date === (today && today.date) ? ' <span style="color:var(--muted)">(today)</span>' : ''}</td>
+          <td class="num">${x.people}</td>
+          <td class="num">${x.searches}</td>
+          <td class="num">${x.people_who_matched}</td>
+          <td style="width:34%"><div class="bar"><i style="width:${x.searches/maxDay*100}%"></i></div></td>
+        </tr>`).join('')}
+        </tbody></table>`
+      : `<p class="sub" style="margin:10px 0 0">No searches yet.</p>`}
+    </div>
+
+    <p class="note">
+      Counts are privacy-preserving: each visitor is a hash of their IP with a
+      secret salt that rotates daily. No IP, no cookie, and no cross-day identifier
+      is stored, so the same person visiting on two days counts once each day,
+      and cannot be linked across days.
+      ${d.note ? '<br><br>' + d.note : ''}
+    </p>
+  `;
+}
+</script>
+</body>
+</html>

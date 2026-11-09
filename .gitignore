@@ -23,3 +23,7 @@ docker_build.log
 
 # local test scratch
 _ui_test.json
+
+# local usage counters (ephemeral on Render)
+data/stats/
+stats_test.log

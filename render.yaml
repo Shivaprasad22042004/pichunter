@@ -11,3 +11,17 @@ services:
         value: "1"
       - key: PYTHONUNBUFFERED
         value: "1"
+
+      # --- usage counting -------------------------------------------------
+      # STATS_SECRET: any long random string. Changing it only affects how
+      #   visitor hashes look, not the counts.
+      - key: STATS_SECRET
+        generateValue: true
+      # STATS_TOKEN: the key needed to open /api/stats. Set this yourself in
+      #   the dashboard and keep it private.
+      - key: STATS_TOKEN
+        sync: false
+      # EXCLUDE_IPS: comma-separated IPs that are never counted (yours).
+      #   Add your own IP so testing does not inflate the numbers.
+      - key: EXCLUDE_IPS
+        sync: false

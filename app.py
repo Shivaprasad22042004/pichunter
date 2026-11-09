@@ -17,10 +17,13 @@ from pathlib import Path
 
 import numpy as np
 import cv2
-from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Response
+from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Response, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 import onnxruntime as ort
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from stats import stats, Stats, bootstrap_from_env
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE / 'data'                      # index.bin, scale.bin, faces.json
@@ -215,6 +218,9 @@ engine = None
 @app.on_event('startup')
 def _boot():
     global engine
+    restored = bootstrap_from_env()
+    if restored:
+        print(f'[boot] restored {restored} usage rows from STATS_SEED', flush=True)
     engine = Engine()
     print(f'[boot] {engine.n_faces:,} faces, dims={engine.emb.shape[1]}', flush=True)
 
@@ -226,7 +232,8 @@ def health():
 
 
 @app.post('/api/search')
-async def search(selfie: UploadFile = File(...), thresh: float = Form(0.42), topK: int = Form(200)):
+async def search(request: Request, selfie: UploadFile = File(...),
+                 thresh: float = Form(0.42), topK: int = Form(200)):
     t0 = time.time()
     raw = await selfie.read()
     if len(raw) > MAX_UPLOAD:
@@ -247,8 +254,24 @@ async def search(selfie: UploadFile = File(...), thresh: float = Form(0.42), top
 
     v = engine.embed(img, kps[i])
     matches = engine.search(v, thresh, min(topK, 500))
+
+    # Usage counter: stores only a daily-salted hash of the client IP, never the
+    # IP itself and never anything about the image.
+    client_ip = request.headers.get('x-forwarded-for', '').split(',')[0].strip() \
+        or (request.client.host if request.client else '')
+    stats.record(client_ip, bool(matches), len(matches))
+
     return {'matches': matches, 'faces_detected': int(len(dets)),
             'ms': int((time.time() - t0) * 1000)}
+
+
+@app.get('/api/stats')
+def stats_summary(request: Request):
+    """Private usage summary. Requires ?key=<STATS_TOKEN> when STATS_TOKEN is set."""
+    token = os.environ.get('STATS_TOKEN', '')
+    if token and request.query_params.get('key') != token:
+        raise HTTPException(404)
+    return stats.summary()
 
 
 @app.get('/photo/{name:path}')

@@ -19,6 +19,7 @@ COPY scripts/fetch_models.py scripts/fetch_models.py
 RUN mkdir -p models && python scripts/fetch_models.py
 
 COPY app.py .
+COPY stats.py .
 COPY static/ ./static/
 COPY data/ ./data/
 

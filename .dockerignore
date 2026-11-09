@@ -1,8 +1,15 @@
 # .dockerignore
 *.zip
 server.log
+stats_test.log
 __pycache__/
 *.pyc
 .venv/
 .git/
 public/
+docker_build.log
+_ui_test.json
+
+# Local usage counters must never be baked into the image: they would ship
+# real visitor hashes, and every deploy would start with stale numbers.
+data/stats/
