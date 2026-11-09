@@ -266,23 +266,14 @@ async def search(request: Request, selfie: UploadFile = File(...),
 
 
 @app.get('/api/stats')
-def stats_summary(request: Request):
-    """Private usage summary.
+def stats_summary():
+    """Public usage summary.
 
-    Fails closed: if STATS_TOKEN is not configured, the endpoint stays disabled
-    rather than exposing usage numbers to anyone with the URL.
+    Deliberately open: these numbers are shown on /stats and contain no
+    personal data. The underlying file only holds daily-salted visitor hashes,
+    which cannot be tied back to anyone or across days.
     """
-    token = os.environ.get('STATS_TOKEN', '')
-    given = request.query_params.get('key', '')
-    if not token or not _same(given, token):
-        raise HTTPException(404)
     return stats.summary()
-
-
-def _same(a: str, b: str) -> bool:
-    """Constant-time compare so the token cannot be guessed by timing."""
-    import hmac
-    return hmac.compare_digest(a.encode(), b.encode())
 
 
 @app.get('/photo/{name:path}')
@@ -319,14 +310,70 @@ def thumb(name: str, w: int = 420):
                     headers={'cache-control': 'public, max-age=86400'})
 
 
+STATIC = HERE / 'static'
+SITE_URL = os.environ.get('SITE_URL', 'https://graduation-photo-finder.onrender.com').rstrip('/')
+
+# Clean URLs: /about -> static/about.html
+PAGES = {
+    'about': 'about.html',
+    'how-it-works': 'how-it-works.html',
+    'privacy': 'privacy.html',
+    'credits': 'credits.html',
+    'bring-your-own': 'bring-your-own.html',
+    'stats': 'stats.html',
+}
+
+
+def _serve(name):
+    f = STATIC / name
+    if not f.is_file() or STATIC.resolve() not in f.resolve().parents:
+        raise HTTPException(404)
+    # HTML must be revalidated so a redeploy is visible without a hard refresh.
+    if name.endswith('.html'):
+        return FileResponse(f, headers={'cache-control': 'no-cache'})
+    return FileResponse(f)
+
+
 @app.get('/')
 def root():
-    return FileResponse(HERE / 'static' / 'index.html')
+    return _serve('index.html')
+
+
+@app.get('/robots.txt', include_in_schema=False)
+def robots():
+    # Allow crawling of the explanation pages, but keep the API out of the index.
+    body = (
+        'User-agent: *\n'
+        'Allow: /\n'
+        'Disallow: /api/\n'
+        'Disallow: /thumb/\n'
+        'Disallow: /photo/\n'
+        f'\nSitemap: {SITE_URL}/sitemap.xml\n'
+    )
+    return Response(body, media_type='text/plain')
+
+
+@app.get('/sitemap.xml', include_in_schema=False)
+def sitemap():
+    urls = ['/'] + [f'/{p}' for p in PAGES]
+    items = ''.join(
+        f'<url><loc>{SITE_URL}{u}</loc><changefreq>weekly</changefreq></url>' for u in urls)
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+           f'{items}</urlset>')
+    return Response(xml, media_type='application/xml')
 
 
 @app.get('/{path:path}')
 def static(path: str):
-    f = HERE / 'static' / path
-    if f.is_file() and (HERE / 'static').resolve() in f.resolve().parents:
-        return FileResponse(f)
-    raise HTTPException(404)
+    # Serve the Google Search Console verification file if configured.
+    # GOOGLE_SITE_VERIFICATION=<code> makes /google<code>.html resolvable.
+    want = os.environ.get('GOOGLE_SITE_VERIFICATION', '').strip()
+    if want and path == f'google{want}.html':
+        return Response(f'google-site-verification: google{want}.html',
+                        media_type='text/html')
+    # map clean URLs
+    clean = path.rstrip('/')
+    if clean in PAGES:
+        return _serve(PAGES[clean])
+    return _serve(path)

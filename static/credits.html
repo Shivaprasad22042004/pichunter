@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Credits &mdash; Graduation Photo Finder</title>
+<meta name="description" content="Every open-source project used to build this site, with links and licences.">
+<link rel="stylesheet" href="/win95.css">
+</head>
+<body>
+
+<div class="window">
+  <div class="titlebar">
+    <span class="icon">&#128230;</span>
+    <span class="title">Credits &mdash; open source used here</span>
+    <button class="tbtn" onclick="minimise(this)">_</button>
+    <button class="tbtn" onclick="maximise()">&#9633;</button>
+    <button class="tbtn" onclick="location.href='/'">&#10005;</button>
+  </div>
+  <div class="menubar" id="menubar"></div>
+
+  <div class="content">
+    <p>None of the clever parts were written from scratch. This site stands on a
+      lot of free work by other people. Here is all of it.</p>
+
+    <div class="notebox warn">
+      <b>Licence notice</b>
+      The face-recognition <b>model weights</b> are free for
+      <b>non-commercial use only</b>. The code that loads them is permissively
+      licensed. If you use this project for anything commercial, you need a
+      separate licence from InsightFace, or a different model. Details below.
+    </div>
+
+    <hr class="hr">
+
+    <h1>Face detection and recognition</h1>
+
+    <table class="files">
+      <thead><tr><th>Project</th><th>What it does</th><th>Licence</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><a href="https://github.com/deepinsight/insightface" target="_blank" rel="noopener">InsightFace</a></td>
+          <td>The face models used here. Its code is MIT licensed.</td>
+          <td>Code: MIT<br>Weights: non-commercial</td>
+        </tr>
+        <tr>
+          <td><a href="https://arxiv.org/abs/2105.04714" target="_blank" rel="noopener">SCRFD</a></td>
+          <td>Finds faces in a photo. Paper: <i>Sample and Computation
+            Redistribution for Efficient Face Detection</i> (ICLR 2022).</td>
+          <td>Paper: arXiv</td>
+        </tr>
+        <tr>
+          <td><a href="https://arxiv.org/abs/1801.07698" target="_blank" rel="noopener">ArcFace</a></td>
+          <td>Turns a face into 512 numbers. Paper: <i>ArcFace: Additive Angular
+            Margin Loss for Deep Face Recognition</i>, Deng, Guo, Xue &amp;
+            Zafeiriou (CVPR 2019).</td>
+          <td>Paper: arXiv</td>
+        </tr>
+        <tr>
+          <td><a href="https://huggingface.co/immich-app/buffalo_l" target="_blank" rel="noopener">buffalo_l weights</a></td>
+          <td>The actual trained model files, hosted for the Immich project.</td>
+          <td>Non-commercial research</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="dim" style="margin-top:8px">Models used:
+      <code>det_10g</code> (SCRFD-10GF detector) and
+      <code>w600k_r50</code> (ResNet-50 ArcFace, trained on WebFace600K).</p>
+
+    <div class="notebox">
+      <b>Why "non-commercial" matters</b>
+      InsightFace releases the <i>code</i> freely, but the trained
+      <i>weights</i> come from research datasets that are restricted. Using them
+      for a free tool like this one is within those terms. Selling a service
+      built on them is not. Contact
+      <code>recognition-oss-pack@insightface.ai</code> if you need a commercial
+      licence.
+    </div>
+
+    <hr class="hr">
+
+    <h1>Software</h1>
+
+    <table class="files">
+      <thead><tr><th>Project</th><th>What it does</th><th>Licence</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://www.python.org/" target="_blank" rel="noopener">Python</a></td>
+            <td>The language everything is written in</td><td>PSF-2.0</td></tr>
+        <tr><td><a href="https://fastapi.tiangolo.com/" target="_blank" rel="noopener">FastAPI</a></td>
+            <td>The web server</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/encode/uvicorn" target="_blank" rel="noopener">Uvicorn</a></td>
+            <td>Runs the web server</td><td>BSD-3-Clause</td></tr>
+        <tr><td><a href="https://onnxruntime.ai/" target="_blank" rel="noopener">ONNX Runtime</a></td>
+            <td>Runs the AI models</td><td>MIT</td></tr>
+        <tr><td><a href="https://github.com/opencv/opencv" target="_blank" rel="noopener">OpenCV</a></td>
+            <td>Image loading, resizing and face alignment</td><td>Apache-2.0</td></tr>
+        <tr><td><a href="https://numpy.org/" target="_blank" rel="noopener">NumPy</a></td>
+            <td>The maths &mdash; comparing 82,620 faces at once</td><td>BSD-3-Clause</td></tr>
+        <tr><td><a href="https://onnx.ai/" target="_blank" rel="noopener">ONNX</a></td>
+            <td>Model file format, and used to compress the models</td><td>Apache-2.0</td></tr>
+        <tr><td><a href="https://github.com/jax-ml/ml_dtypes" target="_blank" rel="noopener">ml_dtypes</a></td>
+            <td>Helper for the model compression step</td><td>Apache-2.0</td></tr>
+        <tr><td><a href="https://pydantic.dev/" target="_blank" rel="noopener">Pydantic</a></td>
+            <td>Data validation inside FastAPI</td><td>MIT</td></tr>
+        <tr><td><a href="https://www.docker.com/" target="_blank" rel="noopener">Docker</a></td>
+            <td>Packages the site so it runs the same everywhere</td><td>Apache-2.0</td></tr>
+        <tr><td><a href="https://render.com/" target="_blank" rel="noopener">Render</a></td>
+            <td>Hosts the site, on their free tier</td><td>Service</td></tr>
+      </tbody>
+    </table>
+
+    <hr class="hr">
+
+    <h1>Interface</h1>
+    <p>The look imitates <b>Windows 95</b>, which is a trademark of Microsoft
+      Corporation. This site is not affiliated with, endorsed by, or connected to
+      Microsoft in any way. No Microsoft fonts or image files are used &mdash;
+      the bevels and gradients are recreated from scratch in CSS, and the text
+      uses fonts already on your computer.</p>
+
+    <hr class="hr">
+
+    <h1>Source code</h1>
+    <p>The whole thing is available at
+      <a href="https://github.com/Shivaprasad22042004/pichunter" target="_blank" rel="noopener">
+        github.com/Shivaprasad22042004/pichunter</a>.
+      Read it, copy it, run your own.</p>
+
+    <table class="files" style="margin-top:10px">
+      <thead><tr><th>Part</th><th>File</th></tr></thead>
+      <tbody>
+        <tr><td>Web server and search</td><td><code>app.py</code></td></tr>
+        <tr><td>Usage counting</td><td><code>stats.py</code></td></tr>
+        <tr><td>Model download and compression</td><td><code>scripts/fetch_models.py</code></td></tr>
+        <tr><td>Page layout and navigation</td><td><code>static/shell.js</code></td></tr>
+        <tr><td>Search page</td><td><code>static/app.js</code></td></tr>
+        <tr><td>Windows 95 styling</td><td><code>static/win95.css</code></td></tr>
+      </tbody>
+    </table>
+
+    <hr class="hr">
+
+    <h1>How the models were made smaller</h1>
+    <p>The original models were 191 MB, which is too heavy for a free server.
+      They were reduced to <b>48 MB</b> by storing their internal weights at
+      lower precision (int8 instead of float32). ONNX Runtime's quantisation
+      tools do this automatically.</p>
+    <p>The face index was compressed the same way: 82,620 faces &times; 512
+      numbers went from 169 MB to <b>42 MB</b>. The results were checked against
+      the uncompressed version first &mdash; every match was identical. Several
+      more aggressive compression schemes <i>were tried and rejected</i> because
+      they silently lost real matches.</p>
+  </div>
+  <div class="statusbar" id="statusbar"></div>
+</div>
+
+<script src="/shell.js"></script>
+<script>
+document.getElementById('menubar').innerHTML = menuBar();
+document.getElementById('statusbar').innerHTML = statusBar(['Credits', '', '']);
+</script>
+</body>
+</html>

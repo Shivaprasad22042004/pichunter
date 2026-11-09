@@ -3,259 +3,94 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Graduation Photo Finder</title>
-<style>
-  :root{
-    --bg:#0b0e14; --panel:#131821; --line:#232b38; --text:#e6edf3;
-    --muted:#8b98a9; --accent:#4f9cf9; --ok:#3fb950; --warn:#d29922; --err:#f85149;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);
-       font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
-  .wrap{max-width:1000px;margin:0 auto;padding:36px 18px 90px}
-  h1{font-size:clamp(24px,4vw,32px);margin:0 0 6px;letter-spacing:-.02em}
-  .sub{color:var(--muted);margin:0 0 26px;max-width:62ch}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
-        padding:22px;margin-bottom:16px}
-  .drop{border:2px dashed var(--line);border-radius:12px;padding:42px 18px;text-align:center;
-        cursor:pointer;transition:.15s}
-  .drop:hover,.drop.hot{border-color:var(--accent);background:#16202e}
-  .drop input{display:none}
-  .drop .big{font-size:16px;margin-bottom:6px}
-  button{background:var(--accent);color:#fff;border:0;border-radius:9px;padding:12px 22px;
-         font-size:15px;font-weight:600;cursor:pointer}
-  button:disabled{opacity:.45;cursor:not-allowed}
-  button.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
-  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  .status{color:var(--muted);font-size:14px}
-  .status.err{color:var(--err)}
-  .status.ok{color:var(--ok)}
-  .bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:14px}
-  .bar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
-  .bar>i.done{background:var(--ok)}
-  img.prev{max-width:200px;max-height:200px;border-radius:10px;border:1px solid var(--line)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
-  .hit{background:#0f141c;border:1px solid var(--line);border-radius:10px;padding:12px;
-       font-size:13px;overflow:hidden;transition:.15s}
-  .hit:hover{border-color:#3a4658}
-  .hit .thumb{width:calc(100% + 24px);margin:-12px -12px 10px;display:block;
-              aspect-ratio:3/2;object-fit:cover;background:#0a0d12}
-  .hit .name{font-family:ui-monospace,monospace;font-size:12.5px;word-break:break-all}
-  .hit .cam{color:var(--muted);font-size:11px;margin-top:2px}
-  .hit .crumb{color:var(--muted);font-size:11px;margin-top:2px;
-              white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .hit .crumb .sep{color:#3a4658}
-  .hit .copy{background:transparent;border:1px solid var(--line);color:var(--muted);
-             font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:6px;
-             margin-top:9px;cursor:pointer;float:right}
-  .hit .copy:hover{border-color:var(--accent);color:var(--text)}
-  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;
-        font-weight:700;margin-top:9px}
-  .pill.strong{background:#12341c;color:var(--ok)}
-  .pill.possible{background:#35280a;color:var(--warn)}
-  .note{font-size:12.5px;color:var(--muted);border-left:3px solid var(--line);
-        padding-left:12px;margin-top:20px}
-  .divider{display:flex;align-items:center;gap:12px;margin:22px 0 14px;color:var(--muted);
-           font-size:12px;text-transform:uppercase;letter-spacing:.08em}
-  .divider:after{content:"";flex:1;height:1px;background:var(--line)}
-  footer{margin-top:34px;font-size:12px;color:#5d6a7c;line-height:1.6}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>Graduation Photo Finder</h1>
-  <p class="sub">Upload a photo of yourself. We'll find every picture you appear in.</p>
-
-  <div class="card">
-    <div class="drop" id="drop">
-      <input type="file" id="file" accept="image/*">
-      <div class="big">Tap to choose a photo, or drag one here</div>
-      <div class="status">A clear, front-facing photo works best.</div>
-    </div>
-    <div class="row" style="margin-top:16px">
-      <img class="prev" id="prev" style="display:none">
-      <div id="info" class="status"></div>
-    </div>
-  </div>
-
-  <div class="card" id="runCard" style="display:none">
-    <div class="row">
-      <button id="go">Find my photos</button>
-      <button id="reset" class="ghost" style="display:none">Start over</button>
-      <span class="status" id="status"></span>
-    </div>
-    <div class="bar"><i id="bar"></i></div>
-  </div>
-
-  <div id="results"></div>
-
-  <p class="note">
-    Your photo is sent to the server only to compute a face fingerprint, then discarded
-    immediately — it is not stored, logged, or shared. Only the fingerprint is compared
-    against an index of faces from the graduation photos.
-  </p>
-
-  <footer>
-    Built for DSI Graduation 2026 · Face recognition uses InsightFace (ArcFace w600k_r50)
-    weights, which are licensed for non-commercial research use only.
-  </footer>
-</div>
-
-<script>
-const $ = s => document.querySelector(s);
-const fileEl = $('#file'), drop = $('#drop'), prev = $('#prev');
-let picked = null, busy = false;
-
-drop.addEventListener('click', () => fileEl.click());
-['dragenter','dragover'].forEach(e => drop.addEventListener(e, ev => {
-  ev.preventDefault(); drop.classList.add('hot'); }));
-['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => {
-  ev.preventDefault(); drop.classList.remove('hot'); }));
-drop.addEventListener('drop', ev => { const f = ev.dataTransfer.files[0]; if (f) pick(f); });
-fileEl.addEventListener('change', () => { if (fileEl.files[0]) pick(fileEl.files[0]); });
-
-function pick(f) {
-  if (!f.type.startsWith('image/')) { alert('Please choose an image file.'); return; }
-  picked = f;
-  prev.src = URL.createObjectURL(f);
-  prev.style.display = 'block';
-  $('#info').textContent = f.name;
-  $('#runCard').style.display = 'block';
-  $('#reset').style.display = 'none';
-  $('#status').textContent = '';
-  $('#status').className = 'status';
-  const bar = $('#bar'); bar.style.width = '0'; bar.classList.remove('done');
-  $('#results').innerHTML = '';
-  $('#go').disabled = false;
-  $('#go').textContent = 'Find my photos';
-}
-
-$('#reset').addEventListener('click', () => {
-  picked = null; fileEl.value = '';
-  prev.style.display = 'none'; prev.src = '';
-  $('#runCard').style.display = 'none';
-  $('#results').innerHTML = '';
-  $('#info').textContent = '';
-});
-
-$('#go').addEventListener('click', async () => {
-  if (!picked || busy) return;
-  busy = true;
-  const btn = $('#go'), st = $('#status'), bar = $('#bar');
-  btn.disabled = true;
-  st.className = 'status'; st.textContent = 'Searching…';
-  bar.style.width = '35%';
-
-  const fd = new FormData();
-  fd.append('selfie', picked);
-  fd.append('thresh', '0.42');
-  fd.append('topK', '200');
-
-  const t0 = Date.now();
-  try {
-    const res = await fetch('/api/search', { method: 'POST', body: fd });
-    const data = await res.json().catch(() => ({}));
-    bar.style.width = '100%';
-    if (!res.ok) throw new Error(data.detail || `Server error (${res.status})`);
-    bar.classList.add('done');
-    st.className = 'status ok';
-    st.textContent = `${data.matches.length} photo(s) found` +
-                     (data.faces_detected > 1 ? ` · ${data.faces_detected} faces in your upload, used the largest` : '');
-    render(data.matches);
-  } catch (e) {
-    bar.style.width = '0';
-    st.className = 'status err';
-    st.textContent = e.message || String(e);
-    btn.disabled = false;
-  } finally {
-    busy = false;
-    $('#reset').style.display = 'inline-block';
-  }
-});
-
-function esc(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
-function card(m) {
-  const parts = m.photo.split('/');
-  const name = parts.pop();
-  // Camera folders (SHANKAR, KRISHNA CAMERA, ...) repeat across both archive
-  // folders, so the archive prefix is what disambiguates a result. Show the
-  // whole chain minus the uniform date folder (e.g. "30-09-2026").
-  const archive = parts.length ? parts[0] : '';
-  const rest = parts.slice(1).filter(p => !/^\d{2}-\d{2}-\d{4}$/.test(p));
-  const tag = archive.endsWith('-001') ? 'Archive 1'
-            : archive.endsWith('-002') ? 'Archive 2'
-            : archive;
-  const crumb = [tag, ...rest].join(' › ');
-  const tier = m.score >= 0.50 ? 'strong' : 'possible';
-  const src = '/thumb/' + m.photo.split('/').map(encodeURIComponent).join('/');
-  return `<div class="hit">
-    <img class="thumb" loading="lazy" alt="" src="${src}"
-         onerror="this.style.display='none'">
-    <div class="name">${esc(name)}</div>
-    <div class="crumb" title="${esc(m.photo)}">${esc(crumb)}</div>
-    <span class="pill ${tier}">${m.score.toFixed(2)}</span>
-    <button class="copy" data-path="${esc(m.photo)}" title="Copy the full path">Copy path</button>
-  </div>`;
-}
-
-document.addEventListener('click', async (e) => {
-  const b = e.target.closest('.copy');
-  if (!b) return;
-  const p = b.dataset.path;
-  try {
-    await navigator.clipboard.writeText(p);
-    b.textContent = 'Copied';
-  } catch {
-    // clipboard API unavailable (e.g. plain http) - fall back to a prompt
-    window.prompt('Copy this path:', p);
-  }
-  setTimeout(() => { b.textContent = 'Copy path'; }, 1400);
-});
-
-function render(matches) {
-  const el = $('#results');
-  if (!matches.length) {
-    el.innerHTML = `<div class="card">
-      <b>No matches found.</b>
-      <div class="status" style="margin-top:8px">
-        Try a clearer, more front-facing photo, or one taken at the ceremony.
-      </div></div>`;
-    return;
-  }
-  const strong = matches.filter(m => m.score >= 0.50);
-  const poss = matches.filter(m => m.score < 0.50);
-  el.innerHTML = `<div class="card">
-    <div class="row" style="justify-content:space-between">
-      <b>${matches.length} photo(s)</b>
-      <span class="status">${strong.length} strong · ${poss.length} possible</span>
-    </div>
-    <div class="row" style="margin-top:12px">
-      <button class="ghost" id="copyAll">Copy all paths</button>
-      <span class="status" id="copyAllMsg"></span>
-    </div>
-    ${strong.length ? `<div class="divider">Strong matches</div>
-      <div class="grid">${strong.map(card).join('')}</div>` : ''}
-    ${poss.length ? `<div class="divider">Possible matches — worth checking</div>
-      <div class="grid">${poss.map(card).join('')}</div>` : ''}
-  </div>`;
-
-  const btn = document.getElementById('copyAll');
-  if (btn) {
-    btn.addEventListener('click', async () => {
-      const text = matches.map(m => m.photo).join('\n');
-      const msg = document.getElementById('copyAllMsg');
-      try {
-        await navigator.clipboard.writeText(text);
-        msg.textContent = `Copied ${matches.length} paths`;
-      } catch {
-        window.prompt('Copy these paths:', text);
-      }
-    });
-  }
+<title>Graduation Photo Finder &mdash; DSI Graduation 2026</title>
+<meta name="description" content="Find every photo of yourself from the DSI Graduation 2026 archive of 10,000 photos. Upload a photo, get the file names. Free, no account.">
+<meta property="og:title" content="Graduation Photo Finder">
+<meta property="og:description" content="Find every photo of yourself in 10,000 graduation photos. Just upload one picture of your face.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="/win95.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Graduation Photo Finder",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "description": "Find every photo of yourself from the DSI Graduation 2026 archive of about 10,000 photos by uploading one picture of your face.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+  "featureList": "Face-based photo search, no account required, photos not stored"
 }
 </script>
+</head>
+<body>
+
+<div class="window" id="app">
+  <div class="titlebar">
+    <span class="icon">&#128218;</span>
+    <span class="title">Graduation Photo Finder</span>
+    <button class="tbtn" onclick="minimise(this)" aria-label="Minimise">_</button>
+    <button class="tbtn" onclick="maximise()" aria-label="Maximise">&#9633;</button>
+    <button class="tbtn" onclick="location.href='/about'" aria-label="Help">?</button>
+  </div>
+  <div class="menubar" id="menubar"></div>
+
+  <div class="content" id="content">
+    <p><b>Find every photo of yourself from graduation.</b></p>
+    <p>There are about 10,000 photos from DSI Graduation 2026. Nobody has time to
+      scroll through all of them. Upload one photo of your face and this will
+      tell you the name of every picture you appear in.</p>
+
+    <hr class="hr">
+
+    <span class="field-label">Step 1 &mdash; choose a photo of yourself</span>
+    <div class="dropzone" id="drop" tabindex="0" role="button" aria-label="Choose a photo">
+      <input type="file" id="file" accept="image/*" hidden>
+      <div class="big">Click here to choose a photo</div>
+      <div class="hint">or drag one onto this box</div>
+    </div>
+
+    <div id="picked" style="display:none;margin-top:12px">
+      <div class="row">
+        <img id="preview" alt="your photo"
+             style="max-width:120px;max-height:120px;border:2px solid;border-color:#808080 #fff #fff #808080;padding:2px;background:#fff">
+        <div style="flex:1;min-width:160px">
+          <div id="pickedName" style="font-weight:700"></div>
+          <div class="dim" id="pickedSize"></div>
+          <div style="margin-top:10px">
+            <button class="btn primary" id="go">Find my photos</button>
+            <button class="btn" id="clear">Choose another</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="progressWrap" style="display:none;margin-top:14px">
+      <div class="progress" id="progress"></div>
+      <div class="dim" id="progressText" style="margin-top:5px">&nbsp;</div>
+    </div>
+
+    <div id="results" style="margin-top:16px"></div>
+  </div>
+
+  <div class="statusbar" id="statusbar"></div>
+</div>
+
+<div class="footer-links">
+  <div class="shortcuts" style="justify-content:center">
+    <a class="shortcut" href="/about"><div class="ico">&#128220;</div><span>About</span></a>
+    <a class="shortcut" href="/how-it-works"><div class="ico">&#9881;</div><span>How it works</span></a>
+    <a class="shortcut" href="/privacy"><div class="ico">&#128274;</div><span>Privacy</span></a>
+    <a class="shortcut" href="/credits"><div class="ico">&#128230;</div><span>Credits</span></a>
+    <a class="shortcut" href="/bring-your-own"><div class="ico">&#128193;</div><span>Your archive</span></a>
+    <a class="shortcut" href="/stats"><div class="ico">&#128202;</div><span>Stats</span></a>
+  </div>
+  <br>
+  DSI Graduation 2026 &middot; free &middot; no account needed
+  <br>
+  <a href="/credits">Built on open-source software</a>
+</div>
+
+<script src="/shell.js"></script>
+<script src="/app.js"></script>
 </body>
 </html>

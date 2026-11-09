@@ -145,11 +145,8 @@ hash of the caller's IP, and whether any matches were found.
 - **No match counts** by default (set `STATS_STORE_MATCH_COUNT=1` to include
   them for debugging).
 
-View the numbers at **`/stats.html`** (enter `STATS_TOKEN`).
-
-| Endpoint | |
-|---|---|
-| `GET /api/stats?key=<STATS_TOKEN>` | JSON summary; 404 without the right key |
+The numbers are **public** at `/stats` (endpoint `GET /api/stats`). They are
+aggregate counts only and reveal nothing about individuals.
 
 Set **`EXCLUDE_IPS`** to a comma-separated list of IPs that are never counted,
 so your own testing does not inflate the numbers.
@@ -158,6 +155,23 @@ so your own testing does not inflate the numbers.
 reset on redeploy or restart. `stats.export()` returns recoverable rows, and
 `STATS_SEED` (a JSON array) restores them on boot if you want to keep
 long-term totals.
+
+## Pages
+
+| Route | Contents |
+|---|---|
+| `/` | search |
+| `/about` | what this is, in plain English |
+| `/how-it-works` | the pipeline, step by step, with thresholds |
+| `/privacy` | exactly what happens to an uploaded photo |
+| `/credits` | every open-source dependency, with links and licences |
+| `/bring-your-own` | self-host guide + free indexing request |
+| `/stats` | public usage counts |
+| `/robots.txt`, `/sitemap.xml` | search-engine discovery; API paths disallowed |
+
+Set `GOOGLE_SITE_VERIFICATION` to the code Search Console gives you and
+`/google<code>.html` is served for verification. Set `SITE_URL` if the public
+URL changes.
 
 
 ---

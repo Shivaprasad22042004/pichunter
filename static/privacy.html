@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy &mdash; Graduation Photo Finder</title>
+<meta name="description" content="Exactly what happens to your photo when you use this site.">
+<link rel="stylesheet" href="/win95.css">
+</head>
+<body>
+
+<div class="window">
+  <div class="titlebar">
+    <span class="icon">&#128274;</span>
+    <span class="title">Privacy &mdash; what happens to your photo</span>
+    <button class="tbtn" onclick="minimise(this)">_</button>
+    <button class="tbtn" onclick="maximise()">&#9633;</button>
+    <button class="tbtn" onclick="location.href='/'">&#10005;</button>
+  </div>
+  <div class="menubar" id="menubar"></div>
+
+  <div class="content">
+    <p>You are about to upload your face to a website run by a classmate. That
+      deserves a straight answer about what happens to it.</p>
+
+    <hr class="hr">
+
+    <h1>The short version</h1>
+    <div class="notebox">
+      <b>Your photo is used for one thing, for a few seconds, and then thrown away.</b>
+      It is not saved. It is not shown to anyone. It is not sent anywhere else.
+    </div>
+
+    <h1>Exactly what happens, in order</h1>
+    <table class="files">
+      <thead><tr><th style="width:38px">#</th><th>What</th><th style="text-align:right">Kept?</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>You choose a photo on your device</td><td class="num">on your device only</td></tr>
+        <tr><td class="num">2</td><td>It is sent to the server over an encrypted (HTTPS) connection</td><td class="num">in transit</td></tr>
+        <tr><td class="num">3</td><td>The server finds your face and turns it into 512 numbers</td><td class="num">in memory</td></tr>
+        <tr><td class="num">4</td><td>The server compares those numbers with the archive</td><td class="num">in memory</td></tr>
+        <tr><td class="num">5</td><td><b>The photo itself is discarded immediately</b></td><td class="num"><b>no</b></td></tr>
+        <tr><td class="num">6</td><td>You get a list of file names</td><td class="num">&mdash;</td></tr>
+      </tbody>
+    </table>
+
+    <h1>What is definitely not done</h1>
+    <ul class="tick cross">
+      <li>Your photo is <b>not written to disk</b> anywhere &mdash; not by this site.</li>
+      <li>Your photo is <b>not stored in a database</b>.</li>
+      <li>Your photo is <b>not shown to anyone</b>, including other users.</li>
+      <li>Your photo is <b>not sent to any third party</b>. The face comparison runs on the same server.</li>
+      <li>There are <b>no advertising trackers</b> and no analytics scripts.</li>
+      <li>You <b>do not need an account</b>, and you are never asked for a name or email.</li>
+    </ul>
+
+    <h1>What is recorded, and why</h1>
+    <p>So that the site can report how many people used it, one line is saved
+      each time someone searches:</p>
+    <ul class="tick">
+      <li>the date and time</li>
+      <li>a <b>scrambled</b> version of the visitor's network address
+        (a one-way hash, which cannot be turned back into the address)</li>
+      <li>whether the search found anything</li>
+    </ul>
+    <p>The secret used to scramble addresses <b>changes every day</b>. That means
+      the same person on Monday and Tuesday produces two completely unrelated
+      codes, so nobody can be followed from one day to the next. This is not a
+      promise, it is how the code is written.</p>
+    <p>The numbers are public at <a href="/stats">Stats</a>. They contain no
+      personal information.</p>
+
+    <h1>About the archive photos</h1>
+    <p>The graduation photos themselves are <b>not stored on this website</b>.
+      The site only knows which face belongs to which file name. That was a
+      deliberate choice: those photos contain thousands of people who did not
+      choose to be published.</p>
+
+    <h1>Your rights, practically</h1>
+    <p>If you are in the graduation photos and would rather not be found, or want
+      a specific face removed from the search index, email
+      <a href="mailto:shivaprasadchannappanavar@gmail.com?subject=Remove%20me%20from%20the%20photo%20index">shivaprasadchannappanavar@gmail.com</a>
+      and it will be removed.</p>
+    <p>Since nothing identifying is stored, there is not much else to delete
+      &mdash; the practical way to "delete my data" is simply to close the page.</p>
+
+    <div class="notebox warn">
+      <b>One honest caveat</b>
+      This is a free service run by one person, not a company. The code is
+      public, so these claims can be checked rather than trusted &mdash; see
+      <a href="/credits">Credits</a> for the repository link.
+    </div>
+  </div>
+  <div class="statusbar" id="statusbar"></div>
+</div>
+
+<script src="/shell.js"></script>
+<script>
+document.getElementById('menubar').innerHTML = menuBar();
+document.getElementById('statusbar').innerHTML = statusBar(['Privacy', '', '']);
+</script>
+</body>
+</html>

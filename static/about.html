@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About &mdash; Graduation Photo Finder</title>
+<meta name="description" content="What the Graduation Photo Finder is, who it is for, and why it exists.">
+<link rel="stylesheet" href="/win95.css">
+</head>
+<body>
+
+<div class="window">
+  <div class="titlebar">
+    <span class="icon">&#128220;</span>
+    <span class="title">About &mdash; Graduation Photo Finder</span>
+    <button class="tbtn" onclick="minimise(this)">_</button>
+    <button class="tbtn" onclick="maximise()">&#9633;</button>
+    <button class="tbtn" onclick="location.href='/'">&#10005;</button>
+  </div>
+  <div class="menubar" id="menubar"></div>
+
+  <div class="content">
+    <h1>The problem, in one sentence</h1>
+    <p>Somebody took about ten thousand photos at your graduation, and you are
+      in maybe fifteen of them.</p>
+    <p>Finding those fifteen means scrolling through ten thousand pictures.
+      That takes hours. Most people just give up and never see their own photos.</p>
+
+    <hr class="hr">
+
+    <h1>What this does</h1>
+    <p>You give it one photo of your face. It looks through all ten thousand
+      pictures and tells you the file names of the ones you are in.</p>
+    <p>It takes about fifteen seconds instead of several hours.</p>
+
+    <hr class="hr">
+
+    <h1>Who made this</h1>
+    <p>A fellow graduate from the same batch, after graduation. It is not an
+      official service and it is not run by the college. Nobody is being charged
+      and nobody is collecting your data.</p>
+
+    <hr class="hr">
+
+    <h1>What it does not do</h1>
+    <ul class="tick cross">
+      <li>It does not show you the photos. It tells you the file name so you can
+        find them in the shared folder. (Your friends' photos are not hosted
+        anywhere public &mdash; that is deliberate.)</li>
+      <li>It does not keep your photo. See <a href="/privacy">Privacy</a>.</li>
+      <li>It does not work for people who were not at the ceremony.</li>
+      <li>It is not perfect. Faces at odd angles, very small faces in crowd
+        shots, or heavy shadow will be missed. That is a limit of the
+        technology, not something that can be fixed by trying harder.</li>
+    </ul>
+
+    <hr class="hr">
+
+    <h1>Why it looks like this</h1>
+    <p>Because a graduation is a slightly nostalgic event and Windows 95 is a
+      slightly nostalgic interface. That is the entire reason.</p>
+
+    <hr class="hr">
+
+    <h1>Got your own photo archive?</h1>
+    <p>If your college, department, club or family has a big pile of photos that
+      nobody can search through, the same thing can be built for it. Read
+      <a href="/bring-your-own">Bring your own archive</a>.</p>
+
+    <div class="notebox">
+      <b>Where to go next</b>
+      <a href="/how-it-works">How it works</a> &mdash; the actual method, in plain English<br>
+      <a href="/credits">Credits</a> &mdash; every open-source tool used, with links<br>
+      <a href="/stats">Stats</a> &mdash; how many people have used it
+    </div>
+  </div>
+  <div class="statusbar" id="statusbar"></div>
+</div>
+
+<script src="/shell.js"></script>
+<script>
+document.getElementById('menubar').innerHTML = menuBar();
+document.getElementById('statusbar').innerHTML = statusBar(['About', '', '']);
+</script>
+</body>
+</html>

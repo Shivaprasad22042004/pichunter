@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works &mdash; Graduation Photo Finder</title>
+<meta name="description" content="How face matching finds your photos, explained without jargon.">
+<link rel="stylesheet" href="/win95.css">
+</head>
+<body>
+
+<div class="window">
+  <div class="titlebar">
+    <span class="icon">&#9881;</span>
+    <span class="title">How it works</span>
+    <button class="tbtn" onclick="minimise(this)">_</button>
+    <button class="tbtn" onclick="maximise()">&#9633;</button>
+    <button class="tbtn" onclick="location.href='/'">&#10005;</button>
+  </div>
+  <div class="menubar" id="menubar"></div>
+
+  <div class="content">
+    <p>You do not need to understand any of this to use the site. But here is
+      what actually happens, from the moment you click the button.</p>
+
+    <hr class="hr">
+
+    <h1>Step 1 &mdash; We find your face</h1>
+    <p>The server takes your photo and looks for a face in it. If it finds more
+      than one, it uses the largest one. If the face is too small to read
+      properly, it stops and asks for a better photo rather than guessing.</p>
+    <p><span class="dim">Under the bonnet: a face detector called SCRFD scans
+      the image at several sizes at once, so it catches faces that are large and
+      small.</span></p>
+
+    <h1>Step 2 &mdash; Your face becomes a list of numbers</h1>
+    <p>This is the clever part. The face is straightened (turned upright, scaled
+      to a standard size) and then squeezed into a list of <b>512 numbers</b>.
+      Those numbers describe the shape of your face &mdash; the distance between
+      your eyes, the curve of your jaw, and so on.</p>
+    <p>Two photos of the same person produce very similar lists. Two different
+      people produce very different lists. Crucially, <b>the numbers do not
+      contain your photo</b>. You cannot turn them back into a picture.</p>
+    <p><span class="dim">Under the bonnet: this is an ArcFace model
+      (<code>w600k_r50</code>), which learned what faces look like from
+      millions of examples.</span></p>
+
+    <h1>Step 3 &mdash; We compare against everyone in the archive</h1>
+    <p>Every single face in the ten thousand photos was prepared the same way
+      <b>in advance</b>, once. That is why the search is fast: the hard work
+      happened earlier.</p>
+    <p>When you search, your list of numbers is compared against all
+      <b>82,620</b> faces that were found in the archive. Each comparison gives a
+      score from 0 to 1.</p>
+
+    <table class="files" style="margin:10px 0">
+      <thead><tr><th>Score</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td class="num">0.95 &ndash; 1.00</td><td>Almost certainly the same person</td></tr>
+        <tr><td class="num">0.50 &ndash; 0.95</td><td>Very likely you &mdash; shown as a normal match</td></tr>
+        <tr><td class="num">0.42 &ndash; 0.50</td><td>Maybe you &mdash; shown as "possible" so you can check</td></tr>
+        <tr><td class="num">below 0.42</td><td>Not shown. This is where strangers usually land.</td></tr>
+      </tbody>
+    </table>
+
+    <h1>Step 4 &mdash; You get file names</h1>
+    <p>Any photo where at least one face scored above the cut-off is listed,
+      with the folder it lives in. A photo is only listed once even if several
+      faces matched.</p>
+
+    <hr class="hr">
+
+    <h1>How the archive was prepared</h1>
+    <p>This is the part that took the time, and it only happens once.</p>
+    <table class="files">
+      <thead><tr><th>What</th><th style="text-align:right">Number</th></tr></thead>
+      <tbody>
+        <tr><td>Photos scanned</td><td class="num">9,960</td></tr>
+        <tr><td>Faces found</td><td class="num">115,460</td></tr>
+        <tr><td>Faces kept (big enough to be useful)</td><td class="num">82,620</td></tr>
+        <tr><td>Time it took, on one laptop</td><td class="num">about 2 hours</td></tr>
+      </tbody>
+    </table>
+    <p class="dim">Faces smaller than 20 pixels wide were discarded. They are
+      unreadable by humans too &mdash; keeping them added no matches, only
+      noise.</p>
+
+    <hr class="hr">
+
+    <h1>Why a search takes about 15 seconds</h1>
+    <p>The site runs on a free server, which is intentionally slow (about a tenth
+      of a normal computer core). Comparing your face against 82,620 others is
+      quick; getting the models loaded and running on that little CPU is what
+      takes the time.</p>
+    <p>On a normal laptop the same search takes under one second.</p>
+
+    <hr class="hr">
+
+    <h1>What it cannot do</h1>
+    <ul class="tick cross">
+      <li><b>Follow you through time.</b> Different day, different photo &mdash;
+        the system does not and cannot build a profile of you.</li>
+      <li><b>Find you in photos you are not in.</b> No match beats a wrong match.</li>
+      <li><b>See through masks, sunglasses or heavy shadow.</b></li>
+      <li><b>Recognise you from behind or from the side.</b> It needs to see a
+        reasonable amount of your face.</li>
+    </ul>
+
+    <div class="notebox">
+      <b>Does what I wear matter?</b>
+      <b>No.</b> The comparison uses only your face &mdash; it crops to your face
+      before doing anything else, so a graduation gown does not help and does not
+      hurt. What <i>does</i> help is a photo taken under similar conditions to the
+      archive photos: same day, same kind of light, facing the camera.
+    </div>
+
+    <p>Curious about the actual software? See
+      <a href="/credits">Credits</a> &mdash; everything used is open source and
+      linked.</p>
+  </div>
+  <div class="statusbar" id="statusbar"></div>
+</div>
+
+<script src="/shell.js"></script>
+<script>
+document.getElementById('menubar').innerHTML = menuBar();
+document.getElementById('statusbar').innerHTML = statusBar(['How it works', '', '']);
+</script>
+</body>
+</html>

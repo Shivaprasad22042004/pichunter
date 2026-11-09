@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bring your own archive &mdash; Graduation Photo Finder</title>
+<meta name="description" content="Have a huge archive of photos? Get it indexed for free, or run it yourself.">
+<link rel="stylesheet" href="/win95.css">
+</head>
+<body>
+
+<div class="window">
+  <div class="titlebar">
+    <span class="icon">&#128193;</span>
+    <span class="title">Bring your own archive</span>
+    <button class="tbtn" onclick="minimise(this)">_</button>
+    <button class="tbtn" onclick="maximise()">&#9633;</button>
+    <button class="tbtn" onclick="location.href='/'">&#10005;</button>
+  </div>
+  <div class="menubar" id="menubar"></div>
+
+  <div class="content">
+    <p>The same tool works for any pile of photographs that people need to
+      search through: another college's convocation, a wedding with 4,000
+      pictures, a school reunion, a family collection, an event company's
+      backlog.</p>
+
+    <div class="notebox">
+      <b>What it is good at</b>
+      Archives of roughly <b>500 to 50,000 photos</b> with lots of people in
+      them, where each person only appears in a handful.
+    </div>
+
+    <hr class="hr">
+
+    <h1>Option 1 &mdash; I will do it for you, free</h1>
+    <p>If you have an archive that is hard to search, email me. I will index it
+      and host the search page for you at no cost.</p>
+    <p><b>What I need from you</b> (the email is pre-filled with these questions):</p>
+    <ul class="tick">
+      <li>roughly how many photos</li>
+      <li>what the event was, and roughly when</li>
+      <li>how the photos are shared at the moment (Drive folder, WeTransfer,
+        external hard disk, etc.)</li>
+      <li>whether the people in them would be happy to be searchable</li>
+      <li>whether you need it finished by a particular date</li>
+    </ul>
+    <p><b>What you should know before asking</b> &mdash; these are real
+      constraints, not disclaimers:</p>
+    <ul class="tick cross">
+      <li>It is hosted on a free server, so each search takes about 15 seconds
+        and the first visit after a quiet period takes about a minute.</li>
+      <li>Indexing takes roughly <b>1 hour per 5,000 photos</b>.</li>
+      <li>Only <b>file names</b> are returned to people, not the photos
+        themselves. If you want the photos delivered, that needs different
+        hosting and we should discuss it.</li>
+      <li>Faces smaller than about 20 pixels in the original photo cannot be
+        matched. Wide crowd shots from a balcony will mostly not work.</li>
+      <li>I am one person doing this in my spare time. I may say no, or be slow.</li>
+    </ul>
+
+    <p style="margin-top:14px">
+      <a class="btn" style="display:inline-block;text-decoration:none;text-align:center;padding:5px 12px;background:#c0c0c0;color:#000;border:2px solid;border-color:#fff #0a0a0a #0a0a0a #fff;box-shadow:inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080"
+         href="mailto:shivaprasadchannappanavar@gmail.com?subject=Photo%20archive%20indexing%20request&body=Hi%2C%0A%0AI%20would%20like%20my%20photo%20archive%20indexed.%0A%0A1)%20Roughly%20how%20many%20photos%3A%20%0A2)%20What%20the%20event%20was%20and%20when%3A%20%0A3)%20How%20the%20photos%20are%20currently%20shared%3A%20%0A4)%20Are%20the%20people%20in%20them%20happy%20to%20be%20searchable%3F%20%0A5)%20Any%20deadline%3A%20%0A%0AThanks%21">
+        &#9993; Request indexing for my archive
+      </a>
+    </p>
+    <p class="dim">This opens your email app with the questions already written.
+      Replace the blanks and send.</p>
+
+    <hr class="hr">
+
+    <h1>Option 2 &mdash; Run it yourself</h1>
+    <p>Everything here is open source. If you are comfortable with Docker you
+      can run the whole thing in about twenty minutes.</p>
+
+    <table class="files" style="margin:10px 0">
+      <thead><tr><th>Step</th><th>What to do</th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>Clone the repository from <a href="/credits">Credits</a></td></tr>
+        <tr><td class="num">2</td><td>Put your photos in a folder and run the indexing script (this is the slow part, about 1 hour per 5,000 photos)</td></tr>
+        <tr><td class="num">3</td><td><code>docker build -t photo-finder .</code></td></tr>
+        <tr><td class="num">4</td><td><code>docker run -p 8000:8000 photo-finder</code></td></tr>
+      </tbody>
+    </table>
+
+    <p><b>What you need:</b></p>
+    <ul class="tick">
+      <li>About 500 MB of RAM to run the search</li>
+      <li>Python 3.12 for the indexing step</li>
+      <li>Enough disk for the face index &mdash; roughly <b>500 bytes per face</b>
+        (82,620 faces came to 42 MB)</li>
+    </ul>
+
+    <div class="notebox warn">
+      <b>Licence notice &mdash; please read if you plan to use this commercially</b>
+      The face-recognition models are InsightFace's <code>buffalo_l</code>
+      weights. They are free for <b>non-commercial research use only</b>.
+      Personal and non-commercial projects are fine. If you want to use this
+      for a business, you would need a licence from InsightFace, or to swap in a
+      different model. This is not legal advice.
+    </div>
+
+    <hr class="hr">
+
+    <h1>Frequently asked</h1>
+
+    <p><b>Can it find people by their clothes?</b><br>
+      No. It only looks at faces. A photo of someone in a distinctive dress is
+      not findable by the dress.</p>
+
+    <p><b>Can it handle photos from a phone, in any orientation?</b><br>
+      Yes, photos are rotated correctly before the face is read.</p>
+
+    <p><b>How accurate is it?</b><br>
+      Very good for clear, front-facing faces, and it is careful not to invent
+      matches. It is not perfect: it will miss photos where the face is turned
+      away, heavily shadowed, or too small to read. On the test archive, a
+      person known to be in a set of ceremony photos was found in all of them,
+      but that is one person, not a scientific measurement.</p>
+
+    <p><b>Will it work on videos?</b><br>
+      Not directly. Extract frames first, then index those.</p>
+
+    <p><b>Is it safe for photos of children or a private event?</b><br>
+      The technical part is the same, but you should think carefully about
+      whether a searchable index of faces should exist at all. It is easy to
+      restrict access or skip small-face matches. Ask me and we can make it
+      friends-only.</p>
+  </div>
+  <div class="statusbar" id="statusbar"></div>
+</div>
+
+<script src="/shell.js"></script>
+<script>
+document.getElementById('menubar').innerHTML = menuBar();
+document.getElementById('statusbar').innerHTML = statusBar(['Bring your own archive', '', '']);
+</script>
+</body>
+</html>
