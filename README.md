@@ -151,10 +151,27 @@ aggregate counts only and reveal nothing about individuals.
 Set **`EXCLUDE_IPS`** to a comma-separated list of IPs that are never counted,
 so your own testing does not inflate the numbers.
 
-**Limitation on the free tier:** the file lives on ephemeral disk, so counters
-reset on redeploy or restart. `stats.export()` returns recoverable rows, and
-`STATS_SEED` (a JSON array) restores them on boot if you want to keep
-long-term totals.
+### Where the counters live
+
+Counts are stored in a **Redis-compatible database** reached over its REST API,
+so they survive restarts. Set these to enable it:
+
+| Variable | Where to get it |
+|---|---|
+| `UPSTASH_REDIS_REST_URL` | Upstash console → your database → REST API |
+| `UPSTASH_REDIS_REST_TOKEN` | same page |
+
+Free Upstash gives 500k commands/month; each search costs 2–3 commands, so that
+is thousands of searches a day.
+
+The free Render web service has an **ephemeral filesystem**, and Render's own
+free Key Value is **in-memory only**, while free Postgres **expires after 30
+days** — which is why an external database is used.
+
+Without those variables the site still works, but falls back to a local file
+that resets on restart; `/stats` says so when that happens.
+
+`STATS_SEED` (a JSON array of rows) can import older counts on boot.
 
 ## Pages
 

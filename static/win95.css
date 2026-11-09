@@ -270,6 +270,24 @@ a:visited { color: #5a1f6b; }
 .footer-links a { color: #e0fffe; }
 .footer-links span { margin: 0 6px; opacity: .6; }
 
+/* fixed maker mark, bottom-left on every page */
+.spcb-mark {
+  position: fixed;
+  left: 8px;
+  bottom: 6px;
+  z-index: 50;
+  font-family: "MS Sans Serif", Tahoma, "Segoe UI", Verdana, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: lowercase;
+  color: #e0fffe;
+  opacity: .45;
+  text-shadow: 1px 1px 0 rgba(0,0,0,.55);
+  user-select: none;
+  pointer-events: none;
+}
+
 /* desktop shortcut grid */
 .shortcuts { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 12px; }
 .shortcut {

@@ -42,7 +42,11 @@ function footer(extra = '') {
     <a href="/credits">Credits</a><span>|</span>
     <a href="/bring-your-own">Bring your own archive</a>
     <br><br>
-    ${extra || 'DSI Graduation 2026 &middot; built for classmates, free of charge'}
+    <a href="https://www.linkedin.com/in/spcb/" target="_blank" rel="noopener">LinkedIn</a><span>|</span>
+    <a href="https://github.com/Shivaprasad22042004" target="_blank" rel="noopener">GitHub</a><span>|</span>
+    <a href="mailto:shivaprasadchannappanavar@gmail.com">Email</a>
+    <br><br>
+    ${extra || 'DSI Graduation 2026 &middot; free of charge'}
   </div>`;
 }
 
@@ -81,3 +85,21 @@ function esc(s) {
   return String(s).replace(/[&<>"']/g, c => (
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
+
+/* The maker mark, fixed to the bottom-left of every page. Injected here so a
+   new page cannot forget it. */
+(function makerMark() {
+  const add = () => {
+    if (document.querySelector('.spcb-mark')) return;
+    const m = document.createElement('div');
+    m.className = 'spcb-mark';
+    m.textContent = 'spcb';
+    m.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(m);
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', add);
+  } else {
+    add();
+  }
+})();

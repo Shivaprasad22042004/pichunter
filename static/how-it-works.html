@@ -121,9 +121,13 @@
   <div class="statusbar" id="statusbar"></div>
 </div>
 
+<div id="pagefooter"></div>
+
 <script src="/shell.js"></script>
 <script>
 document.getElementById('menubar').innerHTML = menuBar();
+const __f = document.getElementById('pagefooter');
+if (__f) __f.innerHTML = footer();
 document.getElementById('statusbar').innerHTML = statusBar(['How it works', '', '']);
 </script>
 </body>

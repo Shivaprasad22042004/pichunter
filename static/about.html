@@ -40,6 +40,24 @@
       official service and it is not run by the college. Nobody is being charged
       and nobody is collecting your data.</p>
 
+    <table class="files" style="margin:10px 0;max-width:420px">
+      <thead><tr><th>Contact</th><th>Where</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>LinkedIn</td>
+          <td><a href="https://www.linkedin.com/in/spcb/" target="_blank" rel="noopener">linkedin.com/in/spcb</a></td>
+        </tr>
+        <tr>
+          <td>Email</td>
+          <td><a href="mailto:shivaprasadchannappanavar@gmail.com">shivaprasadchannappanavar@gmail.com</a></td>
+        </tr>
+        <tr>
+          <td>GitHub</td>
+          <td><a href="https://github.com/Shivaprasad22042004" target="_blank" rel="noopener">github.com/Shivaprasad22042004</a></td>
+        </tr>
+      </tbody>
+    </table>
+
     <hr class="hr">
 
     <h1>What it does not do</h1>
@@ -53,12 +71,6 @@
         shots, or heavy shadow will be missed. That is a limit of the
         technology, not something that can be fixed by trying harder.</li>
     </ul>
-
-    <hr class="hr">
-
-    <h1>Why it looks like this</h1>
-    <p>Because a graduation is a slightly nostalgic event and Windows 95 is a
-      slightly nostalgic interface. That is the entire reason.</p>
 
     <hr class="hr">
 
@@ -77,9 +89,13 @@
   <div class="statusbar" id="statusbar"></div>
 </div>
 
+<div id="pagefooter"></div>
+
 <script src="/shell.js"></script>
 <script>
 document.getElementById('menubar').innerHTML = menuBar();
+const __f = document.getElementById('pagefooter');
+if (__f) __f.innerHTML = footer();
 document.getElementById('statusbar').innerHTML = statusBar(['About', '', '']);
 </script>
 </body>

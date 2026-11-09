@@ -27,6 +27,8 @@
       <p class="dim">Loading&hellip;</p>
     </div>
 
+    <div id="storageNote"></div>
+
     <hr class="hr">
 
     <h1>How these numbers are counted</h1>
@@ -38,8 +40,7 @@
         <b>changes every day</b>. The code cannot be reversed, and Monday's code
         cannot be matched to Tuesday's.</li>
       <li>No cookies, no accounts, no names.</li>
-      <li>Counts reset when the free server restarts. That is a limitation of
-        the free hosting, not a trick.</li>
+      <li>Counts are kept in a database, so they survive restarts.</li>
     </ul>
     <p><a href="/privacy">Read the full privacy note</a></p>
   </div>
@@ -47,9 +48,13 @@
   <div class="statusbar" id="statusbar"></div>
 </div>
 
+<div id="pagefooter"></div>
+
 <script src="/shell.js"></script>
 <script>
 document.getElementById('menubar').innerHTML = menuBar();
+const __f = document.getElementById('pagefooter');
+if (__f) __f.innerHTML = footer();
 document.getElementById('statusbar').innerHTML = statusBar(['Stats', 'Loading\u2026', '']);
 
 async function load() {
@@ -63,6 +68,12 @@ async function load() {
       : 'Could not load stats (' + res.status + ')');
     const d = await res.json();
     render(d);
+    if (d.storage && d.storage !== 'database') {
+      document.getElementById('storageNote').innerHTML =
+        `<div class="notebox warn"><b>Heads up</b>These counts are being kept in
+          temporary storage, so they will reset when the server restarts. No
+          database is connected yet.</div>`;
+    }
     document.getElementById('statusbar').innerHTML =
       statusBar(['Stats', d.total_searches + ' searches', d.days.length + ' day(s)']);
   } catch (e) {
