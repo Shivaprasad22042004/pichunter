@@ -17,3 +17,6 @@ __pycache__/
 # GitHub's 100 MB limit. scripts/fetch_models.py downloads and quantises them
 # to 48 MB int8 at container build time (see Dockerfile).
 models/*.onnx
+
+# build artefacts
+docker_build.log
