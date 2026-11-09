@@ -8,6 +8,6 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: ORT_THREADS
-        value: "2"
+        value: "1"
       - key: PYTHONUNBUFFERED
         value: "1"
