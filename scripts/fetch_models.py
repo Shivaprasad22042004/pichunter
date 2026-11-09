@@ -42,6 +42,8 @@ def main():
         download(url, dst)
 
     from onnxruntime.quantization import quantize_dynamic, QuantType
+    import onnxruntime as ort
+    print(f'  quantising with onnxruntime {ort.__version__}', flush=True)
     for src, dst in ((DET, 'models/det_10g_int8.onnx'), (REC, 'models/w600k_r50_int8.onnx')):
         if os.path.exists(dst):
             print(f'  present: {dst}', flush=True)

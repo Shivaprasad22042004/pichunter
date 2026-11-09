@@ -1,6 +1,18 @@
+# runtime
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 python-multipart==0.0.20
 numpy==2.2.1
 opencv-python-headless==4.10.0.84
-onnxruntime==1.20.1
+
+# Pinned exactly: the int8 models are produced by this same ORT at build time
+# (see scripts/fetch_models.py). Quantised graphs are not portable across ORT
+# versions, and ORT 1.20.1 cannot execute the ConvInteger node its own
+# quantiser emits ("Could not find an implementation for ConvInteger").
+# Verified working: 1.28.0 runs both int8 models.
+onnxruntime==1.28.0
+
+# build-only: onnxruntime.quantization needs these at import time.
+# onnx for graph inspection, ml_dtypes for ORT 1.28's quantiser helpers.
+onnx==1.17.0
+ml_dtypes==0.5.1
