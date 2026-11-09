@@ -267,11 +267,22 @@ async def search(request: Request, selfie: UploadFile = File(...),
 
 @app.get('/api/stats')
 def stats_summary(request: Request):
-    """Private usage summary. Requires ?key=<STATS_TOKEN> when STATS_TOKEN is set."""
+    """Private usage summary.
+
+    Fails closed: if STATS_TOKEN is not configured, the endpoint stays disabled
+    rather than exposing usage numbers to anyone with the URL.
+    """
     token = os.environ.get('STATS_TOKEN', '')
-    if token and request.query_params.get('key') != token:
+    given = request.query_params.get('key', '')
+    if not token or not _same(given, token):
         raise HTTPException(404)
     return stats.summary()
+
+
+def _same(a: str, b: str) -> bool:
+    """Constant-time compare so the token cannot be guessed by timing."""
+    import hmac
+    return hmac.compare_digest(a.encode(), b.encode())
 
 
 @app.get('/photo/{name:path}')
