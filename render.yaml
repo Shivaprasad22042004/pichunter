@@ -21,10 +21,10 @@ services:
       # Durable counter storage. The free Render web service has an ephemeral
       # filesystem and the free Render Key Value is in-memory, so without an
       # external database the counts reset whenever the service restarts.
-      # Create a free Upstash Redis database (500k commands/month) and paste
-      # its REST URL and token below.
+      # Upstash free plan: 500k commands/month, enough for thousands of searches
+      # a day. Only the token needs to be supplied by hand.
       - key: UPSTASH_REDIS_REST_URL
-        sync: false
+        value: https://hopeful-reindeer-185974.upstash.io
       - key: UPSTASH_REDIS_REST_TOKEN
         sync: false
 

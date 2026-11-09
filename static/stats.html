@@ -68,7 +68,10 @@ async function load() {
       : 'Could not load stats (' + res.status + ')');
     const d = await res.json();
     render(d);
-    if (d.storage && d.storage !== 'database') {
+    if (d.warning) {
+      document.getElementById('storageNote').innerHTML =
+        `<div class="notebox warn"><b>Database unavailable</b>${esc(d.warning)}</div>`;
+    } else if (d.storage && d.storage !== 'database') {
       document.getElementById('storageNote').innerHTML =
         `<div class="notebox warn"><b>Heads up</b>These counts are being kept in
           temporary storage, so they will reset when the server restarts. No

@@ -132,6 +132,12 @@ class Stats:
             out = self._summary_redis()
             if out is not None:
                 return out
+            # Database configured but unreachable (bad token, outage, quota).
+            # Say so rather than silently reporting zeroes as if they were real.
+            fb = self._summary_file()
+            fb['storage'] = 'database unreachable - showing local fallback'
+            fb['warning'] = 'Could not read the usage database. These numbers may be incomplete.'
+            return fb
         return self._summary_file()
 
     def _summary_redis(self):
