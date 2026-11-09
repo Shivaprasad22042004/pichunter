@@ -1,0 +1,8 @@
+# .dockerignore
+*.zip
+server.log
+__pycache__/
+*.pyc
+.venv/
+.git/
+public/

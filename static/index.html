@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Graduation Photo Finder</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#131821; --line:#232b38; --text:#e6edf3;
+    --muted:#8b98a9; --accent:#4f9cf9; --ok:#3fb950; --warn:#d29922; --err:#f85149;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:36px 18px 90px}
+  h1{font-size:clamp(24px,4vw,32px);margin:0 0 6px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 26px;max-width:62ch}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+        padding:22px;margin-bottom:16px}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:42px 18px;text-align:center;
+        cursor:pointer;transition:.15s}
+  .drop:hover,.drop.hot{border-color:var(--accent);background:#16202e}
+  .drop input{display:none}
+  .drop .big{font-size:16px;margin-bottom:6px}
+  button{background:var(--accent);color:#fff;border:0;border-radius:9px;padding:12px 22px;
+         font-size:15px;font-weight:600;cursor:pointer}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .status{color:var(--muted);font-size:14px}
+  .status.err{color:var(--err)}
+  .status.ok{color:var(--ok)}
+  .bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:14px}
+  .bar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+  .bar>i.done{background:var(--ok)}
+  img.prev{max-width:200px;max-height:200px;border-radius:10px;border:1px solid var(--line)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+  .hit{background:#0f141c;border:1px solid var(--line);border-radius:10px;padding:12px;
+       font-size:13px;overflow:hidden;transition:.15s}
+  .hit:hover{border-color:#3a4658}
+  .hit .thumb{width:calc(100% + 24px);margin:-12px -12px 10px;display:block;
+              aspect-ratio:3/2;object-fit:cover;background:#0a0d12}
+  .hit .name{font-family:ui-monospace,monospace;font-size:12.5px;word-break:break-all}
+  .hit .cam{color:var(--muted);font-size:11px;margin-top:2px}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;
+        font-weight:700;margin-top:9px}
+  .pill.strong{background:#12341c;color:var(--ok)}
+  .pill.possible{background:#35280a;color:var(--warn)}
+  .note{font-size:12.5px;color:var(--muted);border-left:3px solid var(--line);
+        padding-left:12px;margin-top:20px}
+  .divider{display:flex;align-items:center;gap:12px;margin:22px 0 14px;color:var(--muted);
+           font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+  .divider:after{content:"";flex:1;height:1px;background:var(--line)}
+  footer{margin-top:34px;font-size:12px;color:#5d6a7c;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Graduation Photo Finder</h1>
+  <p class="sub">Upload a photo of yourself. We'll find every picture you appear in.</p>
+
+  <div class="card">
+    <div class="drop" id="drop">
+      <input type="file" id="file" accept="image/*">
+      <div class="big">Tap to choose a photo, or drag one here</div>
+      <div class="status">A clear, front-facing photo works best.</div>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <img class="prev" id="prev" style="display:none">
+      <div id="info" class="status"></div>
+    </div>
+  </div>
+
+  <div class="card" id="runCard" style="display:none">
+    <div class="row">
+      <button id="go">Find my photos</button>
+      <button id="reset" class="ghost" style="display:none">Start over</button>
+      <span class="status" id="status"></span>
+    </div>
+    <div class="bar"><i id="bar"></i></div>
+  </div>
+
+  <div id="results"></div>
+
+  <p class="note">
+    Your photo is sent to the server only to compute a face fingerprint, then discarded
+    immediately — it is not stored, logged, or shared. Only the fingerprint is compared
+    against an index of faces from the graduation photos.
+  </p>
+
+  <footer>
+    Built for DSI Graduation 2026 · Face recognition uses InsightFace (ArcFace w600k_r50)
+    weights, which are licensed for non-commercial research use only.
+  </footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const fileEl = $('#file'), drop = $('#drop'), prev = $('#prev');
+let picked = null, busy = false;
+
+drop.addEventListener('click', () => fileEl.click());
+['dragenter','dragover'].forEach(e => drop.addEventListener(e, ev => {
+  ev.preventDefault(); drop.classList.add('hot'); }));
+['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => {
+  ev.preventDefault(); drop.classList.remove('hot'); }));
+drop.addEventListener('drop', ev => { const f = ev.dataTransfer.files[0]; if (f) pick(f); });
+fileEl.addEventListener('change', () => { if (fileEl.files[0]) pick(fileEl.files[0]); });
+
+function pick(f) {
+  if (!f.type.startsWith('image/')) { alert('Please choose an image file.'); return; }
+  picked = f;
+  prev.src = URL.createObjectURL(f);
+  prev.style.display = 'block';
+  $('#info').textContent = f.name;
+  $('#runCard').style.display = 'block';
+  $('#reset').style.display = 'none';
+  $('#status').textContent = '';
+  $('#status').className = 'status';
+  const bar = $('#bar'); bar.style.width = '0'; bar.classList.remove('done');
+  $('#results').innerHTML = '';
+  $('#go').disabled = false;
+  $('#go').textContent = 'Find my photos';
+}
+
+$('#reset').addEventListener('click', () => {
+  picked = null; fileEl.value = '';
+  prev.style.display = 'none'; prev.src = '';
+  $('#runCard').style.display = 'none';
+  $('#results').innerHTML = '';
+  $('#info').textContent = '';
+});
+
+$('#go').addEventListener('click', async () => {
+  if (!picked || busy) return;
+  busy = true;
+  const btn = $('#go'), st = $('#status'), bar = $('#bar');
+  btn.disabled = true;
+  st.className = 'status'; st.textContent = 'Searching…';
+  bar.style.width = '35%';
+
+  const fd = new FormData();
+  fd.append('selfie', picked);
+  fd.append('thresh', '0.42');
+  fd.append('topK', '200');
+
+  const t0 = Date.now();
+  try {
+    const res = await fetch('/api/search', { method: 'POST', body: fd });
+    const data = await res.json().catch(() => ({}));
+    bar.style.width = '100%';
+    if (!res.ok) throw new Error(data.detail || `Server error (${res.status})`);
+    bar.classList.add('done');
+    st.className = 'status ok';
+    st.textContent = `${data.matches.length} photo(s) found` +
+                     (data.faces_detected > 1 ? ` · ${data.faces_detected} faces in your upload, used the largest` : '');
+    render(data.matches);
+  } catch (e) {
+    bar.style.width = '0';
+    st.className = 'status err';
+    st.textContent = e.message || String(e);
+    btn.disabled = false;
+  } finally {
+    busy = false;
+    $('#reset').style.display = 'inline-block';
+  }
+});
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function card(m) {
+  const parts = m.photo.split('/');
+  const name = parts.pop();
+  const cam = parts.length ? parts[parts.length - 1] : '';
+  const tier = m.score >= 0.50 ? 'strong' : 'possible';
+  const src = '/thumb/' + m.photo.split('/').map(encodeURIComponent).join('/');
+  return `<div class="hit">
+    <img class="thumb" loading="lazy" alt="" src="${src}"
+         onerror="this.style.display='none'">
+    <div class="name">${esc(name)}</div>
+    <div class="cam">${esc(cam)}</div>
+    <span class="pill ${tier}">${m.score.toFixed(2)}</span>
+  </div>`;
+}
+
+function render(matches) {
+  const el = $('#results');
+  if (!matches.length) {
+    el.innerHTML = `<div class="card">
+      <b>No matches found.</b>
+      <div class="status" style="margin-top:8px">
+        Try a clearer, more front-facing photo, or one taken at the ceremony.
+      </div></div>`;
+    return;
+  }
+  const strong = matches.filter(m => m.score >= 0.50);
+  const poss = matches.filter(m => m.score < 0.50);
+  el.innerHTML = `<div class="card">
+    <div class="row" style="justify-content:space-between">
+      <b>${matches.length} photo(s)</b>
+      <span class="status">${strong.length} strong · ${poss.length} possible</span>
+    </div>
+    ${strong.length ? `<div class="divider">Strong matches</div>
+      <div class="grid">${strong.map(card).join('')}</div>` : ''}
+    ${poss.length ? `<div class="divider">Possible matches — worth checking</div>
+      <div class="grid">${poss.map(card).join('')}</div>` : ''}
+  </div>`;
+}
+</script>
+</body>
+</html>

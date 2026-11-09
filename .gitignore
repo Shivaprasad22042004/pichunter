@@ -1,0 +1,19 @@
+# uploaded archives / big files
+*.zip
+
+# local
+server.log
+__pycache__/
+*.pyc
+.venv/
+
+# The face index IS committed — it is the expensive artefact to rebuild
+# (82,620 faces, 41 MB, under GitHub's 100 MB file limit).
+#   data/index.bin   committed
+#   data/scale.bin   committed
+#   data/faces.json  committed
+
+# Models are NOT committed: the fp32 originals are 191 MB and one exceeds
+# GitHub's 100 MB limit. scripts/fetch_models.py downloads and quantises them
+# to 48 MB int8 at container build time (see Dockerfile).
+models/*.onnx
