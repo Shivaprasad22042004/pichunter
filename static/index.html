@@ -42,6 +42,13 @@
               aspect-ratio:3/2;object-fit:cover;background:#0a0d12}
   .hit .name{font-family:ui-monospace,monospace;font-size:12.5px;word-break:break-all}
   .hit .cam{color:var(--muted);font-size:11px;margin-top:2px}
+  .hit .crumb{color:var(--muted);font-size:11px;margin-top:2px;
+              white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hit .crumb .sep{color:#3a4658}
+  .hit .copy{background:transparent;border:1px solid var(--line);color:var(--muted);
+             font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:6px;
+             margin-top:9px;cursor:pointer;float:right}
+  .hit .copy:hover{border-color:var(--accent);color:var(--text)}
   .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;
         font-weight:700;margin-top:9px}
   .pill.strong{background:#12341c;color:var(--ok)}
@@ -173,17 +180,40 @@ function esc(s) {
 function card(m) {
   const parts = m.photo.split('/');
   const name = parts.pop();
-  const cam = parts.length ? parts[parts.length - 1] : '';
+  // Camera folders (SHANKAR, KRISHNA CAMERA, ...) repeat across both archive
+  // folders, so the archive prefix is what disambiguates a result. Show the
+  // whole chain minus the uniform date folder (e.g. "30-09-2026").
+  const archive = parts.length ? parts[0] : '';
+  const rest = parts.slice(1).filter(p => !/^\d{2}-\d{2}-\d{4}$/.test(p));
+  const tag = archive.endsWith('-001') ? 'Archive 1'
+            : archive.endsWith('-002') ? 'Archive 2'
+            : archive;
+  const crumb = [tag, ...rest].join(' › ');
   const tier = m.score >= 0.50 ? 'strong' : 'possible';
   const src = '/thumb/' + m.photo.split('/').map(encodeURIComponent).join('/');
   return `<div class="hit">
     <img class="thumb" loading="lazy" alt="" src="${src}"
          onerror="this.style.display='none'">
     <div class="name">${esc(name)}</div>
-    <div class="cam">${esc(cam)}</div>
+    <div class="crumb" title="${esc(m.photo)}">${esc(crumb)}</div>
     <span class="pill ${tier}">${m.score.toFixed(2)}</span>
+    <button class="copy" data-path="${esc(m.photo)}" title="Copy the full path">Copy path</button>
   </div>`;
 }
+
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('.copy');
+  if (!b) return;
+  const p = b.dataset.path;
+  try {
+    await navigator.clipboard.writeText(p);
+    b.textContent = 'Copied';
+  } catch {
+    // clipboard API unavailable (e.g. plain http) - fall back to a prompt
+    window.prompt('Copy this path:', p);
+  }
+  setTimeout(() => { b.textContent = 'Copy path'; }, 1400);
+});
 
 function render(matches) {
   const el = $('#results');
@@ -202,11 +232,29 @@ function render(matches) {
       <b>${matches.length} photo(s)</b>
       <span class="status">${strong.length} strong · ${poss.length} possible</span>
     </div>
+    <div class="row" style="margin-top:12px">
+      <button class="ghost" id="copyAll">Copy all paths</button>
+      <span class="status" id="copyAllMsg"></span>
+    </div>
     ${strong.length ? `<div class="divider">Strong matches</div>
       <div class="grid">${strong.map(card).join('')}</div>` : ''}
     ${poss.length ? `<div class="divider">Possible matches — worth checking</div>
       <div class="grid">${poss.map(card).join('')}</div>` : ''}
   </div>`;
+
+  const btn = document.getElementById('copyAll');
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      const text = matches.map(m => m.photo).join('\n');
+      const msg = document.getElementById('copyAllMsg');
+      try {
+        await navigator.clipboard.writeText(text);
+        msg.textContent = `Copied ${matches.length} paths`;
+      } catch {
+        window.prompt('Copy these paths:', text);
+      }
+    });
+  }
 }
 </script>
 </body>
