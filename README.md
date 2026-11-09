@@ -186,9 +186,9 @@ that resets on restart; `/stats` says so when that happens.
 | `/stats` | public usage counts |
 | `/robots.txt`, `/sitemap.xml` | search-engine discovery; API paths disallowed |
 
-Set `GOOGLE_SITE_VERIFICATION` to the code Search Console gives you and
-`/google<code>.html` is served for verification. Set `SITE_URL` if the public
-URL changes.
+Drop the Search Console verification file into `static/` (e.g.
+`static/google<code>.html`) — it is served as-is, so verification keeps working
+without depending on any configuration. Set `SITE_URL` if the public URL changes.
 
 
 ---

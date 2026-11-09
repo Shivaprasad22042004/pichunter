@@ -37,5 +37,3 @@ services:
       - key: SITE_URL
         value: https://graduation-photo-finder.onrender.com
       # Optional: the verification code Search Console gives you.
-      - key: GOOGLE_SITE_VERIFICATION
-        sync: false

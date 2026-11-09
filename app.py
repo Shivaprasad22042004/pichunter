@@ -366,13 +366,9 @@ def sitemap():
 
 @app.get('/{path:path}')
 def static(path: str):
-    # Serve the Google Search Console verification file if configured.
-    # GOOGLE_SITE_VERIFICATION=<code> makes /google<code>.html resolvable.
-    want = os.environ.get('GOOGLE_SITE_VERIFICATION', '').strip()
-    if want and path == f'google{want}.html':
-        return Response(f'google-site-verification: google{want}.html',
-                        media_type='text/html')
-    # map clean URLs
+    # Search-console verification files (google<code>.html) are committed in
+    # static/ and served by the generic handler below, so they cannot break if
+    # an environment variable changes.
     clean = path.rstrip('/')
     if clean in PAGES:
         return _serve(PAGES[clean])
