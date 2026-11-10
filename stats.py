@@ -253,6 +253,10 @@ class Stats:
     def export(self):
         return self._load()
 
+    @staticmethod
+    def using_database():
+        return bool(REDIS_URL and REDIS_TOKEN)
+
 
 stats = Stats()
 

@@ -88,10 +88,14 @@
     <hr class="hr">
 
     <h1>Why a search takes about 15 seconds</h1>
-    <p>The site runs on a free server, which is intentionally slow (about a tenth
-      of a normal computer core). Comparing your face against 82,620 others is
-      quick; getting the models loaded and running on that little CPU is what
-      takes the time.</p>
+    <p>The site runs on a free server with about a tenth of a normal computer
+      core. Comparing your face against 82,620 others is quick; running the two
+      models on that little CPU is what takes the time. Measured warm searches
+      have taken 9&ndash;22 seconds, usually around 15.</p>
+    <p>The free server also <b>sleeps after about 15 minutes</b> with no visitors.
+      The first visit after that takes up to a minute while it starts again, and
+      the page tells you when that is happening. Keeping it awake is described in
+      the site's source code.</p>
     <p>On a normal laptop the same search takes under one second.</p>
 
     <hr class="hr">

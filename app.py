@@ -215,20 +215,46 @@ def _umeyama(src, dst):
 
 engine = None
 
+
 @app.on_event('startup')
 def _boot():
+    """Load the index and warm both models before reporting ready.
+
+    Models are loaded eagerly rather than on the first request. On a slow host
+    the cold start already takes tens of seconds; doing the work here means the
+    first visitor does not pay for it twice. A failed warm-up makes startup fail
+    loudly instead of surfacing as a confusing error later.
+    """
     global engine
     restored = bootstrap_from_env()
     if restored:
         print(f'[boot] restored {restored} usage rows from STATS_SEED', flush=True)
+
+    t0 = time.time()
     engine = Engine()
-    print(f'[boot] {engine.n_faces:,} faces, dims={engine.emb.shape[1]}', flush=True)
+    print(f'[boot] index {engine.n_faces:,} faces, dims={engine.emb.shape[1]}', flush=True)
+
+    # Load both sessions and run one dummy inference through each, so the
+    # graph is initialised and any runtime problem appears now.
+    t1 = time.time()
+    _ = engine.det_sess
+    _ = engine.rec_sess
+    blank = np.zeros((DET_SIZE, DET_SIZE, 3), np.uint8)
+    engine.detect(blank)
+    print(f'[boot] models loaded {(time.time() - t1):.1f}s', flush=True)
+    print(f'[boot] ready in {(time.time() - t0):.1f}s', flush=True)
 
 
 @app.get('/api/health')
 def health():
-    return {'ok': True, 'faces': engine.n_faces, 'dims': int(engine.emb.shape[1]),
-            'model': 'arcface w600k_r50'}
+    return {
+        'ok': True,
+        'faces': engine.n_faces,
+        'dims': int(engine.emb.shape[1]),
+        'model': 'arcface w600k_r50',
+        'models_loaded': engine._det_sess is not None and engine._rec_sess is not None,
+        'stats_storage': 'database' if stats.using_database() else 'local file (resets on restart)',
+    }
 
 
 @app.post('/api/search')

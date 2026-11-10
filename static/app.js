@@ -97,14 +97,23 @@ async function run() {
   setProgress(6, STAGES[0]);
   setStatus('Uploading\u2026', '', '');
 
-  // The request takes ~13s on the free tier. Advance the bar honestly:
-  // we cannot know real server progress, so we slow-step and never reach 100%
-  // until the response actually arrives.
+  // We cannot see real server progress, so the bar is an estimate. It is
+  // deliberately honest about what is actually happening: if nothing has come
+  // back after ~8s the server is probably still starting up (the free host
+  // sleeps when idle), and the message says so instead of pretending to search.
+  const WAKE_AFTER = 8;
   let stage = 0;
   const timer = setInterval(() => {
     const secs = (Date.now() - t0) / 1000;
-    const pct = Math.min(90, 8 + secs * 6);
-    const next = Math.min(STAGES.length - 1, Math.floor(pct / 30));
+    if (secs >= WAKE_AFTER) {
+      // stop advancing the bar: we genuinely do not know how far along it is
+      setProgress(Math.min(60, 30 + (secs - WAKE_AFTER) * 0.8),
+                  'Waking up the server\u2026 this can take up to a minute on the free tier.');
+      setStatus(`Waking server\u2026 ${secs.toFixed(0)}s`, '', '');
+      return;
+    }
+    const pct = Math.min(30, 8 + secs * 3);
+    const next = Math.min(STAGES.length - 1, Math.floor(pct / 10));
     if (next !== stage) { stage = next; }
     setProgress(pct, STAGES[stage]);
     setStatus(`Searching\u2026 ${secs.toFixed(0)}s`, '', '');
@@ -148,8 +157,8 @@ function friendlyError(msg) {
   if (/too large/i.test(msg)) {
     return `The photo is bigger than ${MAX_MB} MB. Try cropping it first.`;
   }
-  if (/fetch|network|Failed/i.test(msg)) {
-    return 'Could not reach the server.\n\nThe free server sleeps when nobody uses it, so the first visit can take about a minute to wake up. Please try again in 30 seconds.';
+  if (/fetch|network|Failed|Load failed/i.test(msg)) {
+    return 'Could not reach the server.\n\nThe free server sleeps when nobody has used it for a while, so the first visit can take up to a minute to wake up.\n\nPlease wait a moment and try again.';
   }
   return msg;
 }
