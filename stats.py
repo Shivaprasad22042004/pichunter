@@ -116,7 +116,10 @@ class Stats:
             _redis('SADD', 'stats:days', day)
             return
 
-        entry = {'t': int(time.time()), 'd': day, 'v': v, 'hit': bool(found_matches)}
+        # Fallback storage (no database configured). Keep the same shape as the
+        # database path: day-level only, with no timestamp, so the privacy page
+        # stays true regardless of which storage is in use.
+        entry = {'d': day, 'v': v, 'hit': bool(found_matches)}
         if os.environ.get('STATS_STORE_MATCH_COUNT') == '1':
             entry['n'] = int(n_matches)
         with _lock:

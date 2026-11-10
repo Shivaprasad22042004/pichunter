@@ -55,20 +55,35 @@
     </ul>
 
     <h1>What is recorded, and why</h1>
-    <p>So that the site can report how many people used it, one line is saved
-      each time someone searches:</p>
+    <p>So that the site can report how many people used it, a counter is updated
+      each time someone searches. Only three things are kept:</p>
     <ul class="tick">
-      <li>the date and time</li>
-      <li>a <b>scrambled</b> version of the visitor's network address
-        (a one-way hash, which cannot be turned back into the address)</li>
-      <li>whether the search found anything</li>
+      <li><b>the day</b> (for example <code>2026-11-10</code>) &mdash; not the time
+        and not a sequence of events</li>
+      <li>a <b>scrambled</b> version of the visitor's network address, used only
+        to count each person once per day</li>
+      <li>whether that visitor's search found any photos</li>
     </ul>
-    <p>The secret used to scramble addresses <b>changes every day</b>. That means
-      the same person on Monday and Tuesday produces two completely unrelated
-      codes, so nobody can be followed from one day to the next. This is not a
-      promise, it is how the code is written.</p>
+    <p>No per-visit log is kept. The numbers are totals per day, not a list of
+      who did what and when. The site cannot reconstruct a visitor's activity,
+      because nothing records it in the first place.</p>
+
+    <h1>How the scrambling works</h1>
+    <p>The address is never stored, in whole or in part. It is passed through a
+      one-way fingerprint function together with a secret, which produces a
+      short code like <code>0cd52df063a71543</code>. That code is stored instead
+      of the address.</p>
+    <p>The secret is combined with the date and <b>changes every day</b>, so the
+      same person on Monday and Tuesday produces two codes that look completely
+      unrelated. Nobody can tell they are the same person.</p>
+    <p>One honest limit: the fingerprint is not random &mdash; it is
+      <i>keyed</i>. Anyone who knew the secret could test a guessed address
+      against a stored code and confirm a match. The secret is not published and
+      is stored only as a server setting, so this is not something a visitor or a
+      stranger can do &mdash; but it is the correct description, rather than
+      claiming the address is mathematically unrecoverable by anyone.</p>
     <p>The numbers are public at <a href="/stats">Stats</a>. They contain no
-      personal information.</p>
+      names, no addresses and no individual records.</p>
 
     <h1>About the archive photos</h1>
     <p>The graduation photos themselves are <b>not stored on this website</b>.
